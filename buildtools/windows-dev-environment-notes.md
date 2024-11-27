@@ -1,59 +1,22 @@
 
-# Basic build environment setup guide for Windows using winget for quick developer package testing - neither definitive nor exhaustive
+# Basic build environment setup guide for Windows using winget for quick developer package testing
 
-Lots of info collected from - https://github.com/KhronosGroup/OpenCL-Guide/blob/main/chapters/getting_started_windows.md
+This basic guide uses much information sourced from https://github.com/KhronosGroup/OpenCL-Guide/blob/main/chapters/getting_started_windows.md. Information needed for developing ```Tauri apps``` was sourced from https://v1.tauri.app/v1/guides/getting-started/prerequisites
 
 and ```needed for developing Tauri apps.``` - https://v1.tauri.app/v1/guides/getting-started/prerequisites
 
-Need to have ```winget``` installed and working, which requires ```App Installer```, not only installed, but updated to the latest version.
+## Setting up winget and App Installer
 
-Using Microsoft Edge, open the following URL:
+Users will require ```winget```, which is a Windows package manager bundled with ```App Installer```. This guide will require ```App Installer``` to be at the latest version.
 
-https://www.microsoft.com/p/app-installer/9nblggh4nns1#activetab=pivot:overviewtab
+You might already have them installed. Run the following command in Powershell with Administrator privileges to confirm:
 
-then click the ```App Installer``` install button.
-
-Found that after installing and rebooting Windows and checking for ```App Installer``` updates and appling any outstanding updates. 
-
-Check that ```winget``` is working, run in PowerShell.
-```PowerShell
+```powershell
 winget list
 ```
-sample of output without ```App Installer``` installed
-```
-PS C:\Users\leet> winget list
-  |
-PS C:\Users\leet>
-```
+The expected output would be something along the lines of:
 
-sample output where ```winget``` has not be run yet:
-```PowerShell
-PS C:\Users\leet> winget list
-Failed in attempting to update the source: winget
-The `msstore` source requires that you view the following agreements before using.
-Terms of Transaction: https://aka.ms/microsoft-store-terms-of-transaction
-The source requires the current machine's 2-letter geographic region to be sent to the backend service to function properly (ex. "US").
-
-Do you agree to all the source agreements terms?
-[Y] Yes  [N] No: y
-Failed when searching source; results will not be included: winget
-Name                                           Id                                                   Version
------------------------------------------------------------------------------------------------------------------------
-Clipchamp                                      Clipchamp.Clipchamp_yxz26nhyzhsrt                    2.2.8.0
-Microsoft Edge                                 Microsoft Edge                                       130.0.2849.80
-Microsoft Edge WebView2 Runtime                Microsoft EdgeWebView                                130.0.2849.80
-```
-please notice ```Failed when searching source; results will not be included: winget```, normally means that ```App Installer``` needs to be updated.
-
-sample output where ```App Installer``` is installed, but not updated to the latest:
-```
-PS C:\Users\leet> winget list
-Failed in attempting to update the source: winget
-Failed when searching source; results will not be included: winget
-```
-
-sample of output where ```winget``` is ready to be used for installing tools:
-```
+```powershell
 PS C:\Users\leet> winget list
 Name                                    Id                                       Version          Available      Source
 -----------------------------------------------------------------------------------------------------------------------
@@ -68,14 +31,21 @@ Microsoft OneDrive                      Microsoft.OneDrive                      
 Clipchamp                               MSIX\Clipchamp.Clipchamp_2.2.8.0_neutra… 2.2.8.0
 ```
 
+If you do not see the above, it can be the result of several issues, listed below:
+* **User has not run winget before**: You will be required to accept the terms and conditions that govern the use of ```winget``` and its sources. Read and accept the terms, which will then proceed to list the available applications.
+* **Receive an error message "Failed when searching source; results will not be included: winget" or "Failed in attempting to update the source: winget"**: ```winget``` is installed, but ```App Installer``` is not at the latest version. To update ```App Installer```, you will need to run ```winget upgrade --id Microsoft.DesktopAppInstaller```
+* **Terminal displays a blank result**: this means that ```App Installer```, and by extension ```winget```, is not installed. You will need to manually install it via the Microsoft Store. Use Microsoft Edge, and open the following URL in the browser: https://www.microsoft.com/p/app-installer/9nblggh4nns1#activetab=pivot:overviewtab, then click the install button to install it. It is best to restart the machine following the installation.
+
 Then we can start installing components that will be needed in Compiling ```The Tari protocol tools``` locally
 
-# Install Visual Studio BuildTools 2022
-```PowerShell
+## Install Visual Studio BuildTools 2022
+To install, run the following command:
+```Powershell
 winget install "Visual Studio BuildTools 2022"
 ```
-sample output would look something like:
-```
+Sample output would look something like:
+
+```powershell
 PS C:\Users\leet> winget install "Visual Studio BuildTools 2022"
 Found Visual Studio BuildTools 2022 [Microsoft.VisualStudio.2022.BuildTools] Version 17.11.5
 This application is licensed to you by its owner.
@@ -87,11 +57,16 @@ Starting package install...
 Successfully installed
 ```
 
-# Install Visual Studio components for Windows 11
-```PowerShell
+This will save a ```setup.exe``` file to ```C:\Program Files (x86)\Microsoft Visual Studio\Installer\```, which will be used to install the various required components in the next step.
+
+## Install Visual Studio components for Windows 11
+To install, run the following command: 
+
+```powershell
 & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\setup.exe" install --passive --norestart --productId Microsoft.VisualStudio.Product.BuildTools --channelId VisualStudio.17.Release --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.Component.Windows11SDK.26100 --add Microsoft.VisualStudio.Component.VC.CMake.Project --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --add Microsoft.VisualStudio.Component.VC.CoreIde --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.ComponentGroup.NativeDesktop.Core
 ````
-sample of the begining of output:
+
+A sample of the beginning of the expected output:
 ```
 PS C:\Users\leet> & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\setup.exe" install --passive --norestart --productId Microsoft.VisualStudio.Product.BuildTools --channelId VisualStudio.17.Release --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.Component.Windows11SDK.22000
 PS C:\Users\leet> [1d44:0001][2024-11-05T02:37:56] Saving the current locale (en-US) to user.json.
