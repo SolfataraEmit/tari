@@ -1,15 +1,14 @@
-
-# Basic build environment setup guide for Windows using winget for quick developer package testing
+# Basic build environment setup guide for Windows
 
 This basic guide uses much information sourced from https://github.com/KhronosGroup/OpenCL-Guide/blob/main/chapters/getting_started_windows.md. Information needed for developing ```Tauri apps``` was sourced from https://v1.tauri.app/v1/guides/getting-started/prerequisites
 
-and ```needed for developing Tauri apps.``` - https://v1.tauri.app/v1/guides/getting-started/prerequisites
+> This guide assumes that you are installing most of these components for the first time (excluding ```App Installer```, which is normally packaged with Windows.).
 
-## Setting up winget and App Installer
+## Setting up ```winget``` and ```App Installer```
 
 Users will require ```winget```, which is a Windows package manager bundled with ```App Installer```. This guide will require ```App Installer``` to be at the latest version.
 
-You might already have them installed. Run the following command in Powershell with Administrator privileges to confirm:
+You might already have them installed. Run the following command in Powershell with Administrator privileges to confirm (to run PowerShell as Administrator, open the Start Menu, search for PowerShell, then right-click on the result and select the "Run as Administrator"):
 
 ```powershell
 winget list
@@ -36,7 +35,7 @@ If you do not see the above, it can be the result of several issues, listed belo
 * **Receive an error message "Failed when searching source; results will not be included: winget" or "Failed in attempting to update the source: winget"**: ```winget``` is installed, but ```App Installer``` is not at the latest version. To update ```App Installer```, you will need to run ```winget upgrade --id Microsoft.DesktopAppInstaller```
 * **Terminal displays a blank result**: this means that ```App Installer```, and by extension ```winget```, is not installed. You will need to manually install it via the Microsoft Store. Use Microsoft Edge, and open the following URL in the browser: https://www.microsoft.com/p/app-installer/9nblggh4nns1#activetab=pivot:overviewtab, then click the install button to install it. It is best to restart the machine following the installation.
 
-Then we can start installing components that will be needed in Compiling ```The Tari protocol tools``` locally
+Then we can start installing components that will be needed to compile the ```Tari protocol tools``` locally.
 
 ## Install Visual Studio BuildTools 2022
 To install, run the following command:
@@ -60,14 +59,19 @@ Successfully installed
 This will save a ```setup.exe``` file to ```C:\Program Files (x86)\Microsoft Visual Studio\Installer\```, which will be used to install the various required components in the next step.
 
 ## Install Visual Studio components for Windows 11
+
+In this step, we will be installing several components required by Visual Studio for the build
 To install, run the following command: 
 
 ```powershell
 & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\setup.exe" install --passive --norestart --productId Microsoft.VisualStudio.Product.BuildTools --channelId VisualStudio.17.Release --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.Component.Windows11SDK.26100 --add Microsoft.VisualStudio.Component.VC.CMake.Project --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --add Microsoft.VisualStudio.Component.VC.CoreIde --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.ComponentGroup.NativeDesktop.Core
-````
+```
+
+
+
 
 A sample of the beginning of the expected output:
-```
+```powershell
 PS C:\Users\leet> & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\setup.exe" install --passive --norestart --productId Microsoft.VisualStudio.Product.BuildTools --channelId VisualStudio.17.Release --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.Component.Windows11SDK.22000
 PS C:\Users\leet> [1d44:0001][2024-11-05T02:37:56] Saving the current locale (en-US) to user.json.
 [1d44:0001][2024-11-05T02:37:56] Setting the telemetry services
@@ -80,12 +84,15 @@ PS C:\Users\leet> [1d44:0001][2024-11-05T02:37:56] Saving the current locale (en
 ```
 Visual Studio Installer should download and install components requested.
 
-# Install git - https://git-scm.com/downloads/win
-```PowerShell
+## Install ```git``` 
+
+You will require ```git``` installed. To install, run the following command:
+
+```powershell
 winget install --id Git.Git -e --source winget
 ```
-sample output:
-```
+A sample of the expected output:
+```powershell
 PS C:\Users\leet> winget install --id Git.Git -e --source winget
 >>
 Found Git [Git.Git] Version 2.47.0.2
@@ -98,12 +105,18 @@ Starting package install...
 Successfully installed
 ```
 
-# Install Windows chocolatey package manager, helps with easy installation of additional components (protobuf)
+## Install ```chocolatey``` package manager 
+
+```chocolatey``` is a Window's package manager that draws from a different set of repos than ```winget```, but will make the process of installing further required dependencies and packages such as ```protobuf``` easier.
+
+To install, , run the following command:
+
 ```PowerShell
 winget install --id chocolatey.chocolatey
 ```
 sample output:
-```
+
+```Powershell
 PS C:\Users\leet> winget install --id chocolatey.chocolatey
 Found Chocolatey [Chocolatey.Chocolatey] Version 2.3.0.0
 This application is licensed to you by its owner.
@@ -116,11 +129,18 @@ Successfully installed
 Notes: The Chocolatey CLI MSI is intended for installation only! If upgrading from 5.x of Licensed Extension, or 1.x of other Chocolatey products, see the upgrade guide at https://ch0.co/upv2v6 before continuing. Otherwise, run `choco upgrade chocolatey`.
 ```
 
-# Install Protobuf with chocolatey
-Use a new PowerShell console, as choco will not be in the current console path and seem broken.
+> It is required to close all PowerShell terminals once this is complete. Failure to do so will result in any ```choco``` commands not being interpreted correctly until PowerShell has been restarted.
+
+## Install Protobuf with chocolatey
+
+Using a new PowerShell console, run the following command:
+
 ```PowerShell
 choco upgrade protoc -y
 ```
+
+This will attempt to upgrade an existing ```protobuf``` install. If not installed, the command will then install ```protobuf```, then upgrade it.
+
 sample output:
 ```
 PS C:\Users\leet> choco upgrade protoc -y
@@ -132,21 +152,7 @@ protoc is not installed. Installing...
 Downloading package from source 'https://community.chocolatey.org/api/v2/'
 Progress: Downloading chocolatey-compatibility.extension 1.0.0... 100%
 
-chocolatey-compatibility.extension v1.0.0 [Approved]
-chocolatey-compatibility.extension package files upgrade completed. Performing other installation steps.
- Installed/updated chocolatey-compatibility extensions.
- The upgrade of chocolatey-compatibility.extension was successful.
-  Deployed to 'C:\ProgramData\chocolatey\extensions\chocolatey-compatibility'
-Downloading package from source 'https://community.chocolatey.org/api/v2/'
-Progress: Downloading chocolatey-core.extension 1.4.0... 100%
-
-chocolatey-core.extension v1.4.0 [Approved]
-chocolatey-core.extension package files upgrade completed. Performing other installation steps.
- Installed/updated chocolatey-core extensions.
- The upgrade of chocolatey-core.extension was successful.
-  Deployed to 'C:\ProgramData\chocolatey\extensions\chocolatey-core'
-Downloading package from source 'https://community.chocolatey.org/api/v2/'
-Progress: Downloading protoc 28.3.0... 100%
+[...]
 
 protoc v28.3.0 [Approved]
 protoc package files upgrade completed. Performing other installation steps.
@@ -160,17 +166,22 @@ Chocolatey upgraded 3/3 packages.
  See the log for details (C:\ProgramData\chocolatey\logs\chocolatey.log).
 ```
 
-# Install Windows vcpkg package manager, helps with easy installation of additional components (openssl)
+## Install Windows vcpkg package manager
+
+The last package manager you'll need to install is ```vcpkg```. This will be used for the installation of ```OpenSSL```.
+
+To install ```vcpkg```, run the following commnands:
+
 ```PowerShell
 git clone https://github.com/microsoft/vcpkg.git \vcpkg
 cd \vcpkg
 .\bootstrap-vcpkg.bat
 ```
+
+Below is a sample of the successful execution of the commands above:
+
 sample output:
-```
-PS C:\Users\leet> git clone https://github.com/microsoft/vcpkg.git C:\
->>
-fatal: destination path 'C:' already exists and is not an empty directory.
+```powershell
 PS C:\Users\leet> git clone https://github.com/microsoft/vcpkg.git \vcpkg\
 >>
 Cloning into '\vcpkg'...
@@ -187,26 +198,20 @@ Downloading https://github.com/microsoft/vcpkg-tool/releases/download/2024-11-12
 Validating signature... done.
 
 vcpkg package management program version 2024-11-12-eb492805e92a2c14a230f5c3deb3e89f6771c321
-
-See LICENSE.txt for license information.
-Telemetry
----------
-vcpkg collects usage data in order to help us improve your experience.
-The data collected by Microsoft is anonymous.
-You can opt-out of telemetry by re-running the bootstrap-vcpkg script with -disableMetrics,
-passing --disable-metrics to vcpkg on the command line,
-or by setting the VCPKG_DISABLE_METRICS environment variable.
-
-Read more about vcpkg telemetry at docs/about/privacy.md
 ```
 
-# Install Openssl with vcpkg
-```PowerShell
+## Install ```OpenSSL``` with vcpkg
+
+To install ```OpenSSL```, run the following commands:
+
+```powershell
 $Env:Path += ';C:\vcpkg'
 vcpkg install openssl:x64-windows-static
 ```
-sample output:
-```
+
+Below is a sample output (with many of the intervening steps omitted via the "[...]") of a successful run of the above command:
+
+```powershell
 PS C:\Users\leet> $Env:Path += ';C:\vcpkg'
 >>
 PS C:\Users\leet> vcpkg install openssl:x64-windows-static
@@ -217,94 +222,9 @@ A suitable version of cmake was not found (required v3.30.1).
 Downloading cmake-3.30.1-windows-i386.zip
 Successfully downloaded cmake-3.30.1-windows-i386.zip.
 Extracting cmake...
-A suitable version of 7zip was not found (required v24.8.0).
-Downloading 7z2408-extra.7z
-Successfully downloaded 7z2408-extra.7z.
-Extracting 7zip...
-A suitable version of 7zr was not found (required v24.8.0).
-Downloading 424196f2-7zr.exe
-Successfully downloaded 424196f2-7zr.exe.
-The following packages will be built and installed:
-    openssl:x64-windows-static@3.4.0
-  * vcpkg-cmake:x64-windows@2024-04-23
-  * vcpkg-cmake-config:x64-windows@2024-05-23
-  * vcpkg-cmake-get-vars:x64-windows@2024-09-22
-Additional packages (*) will be modified to complete this operation.
-Detecting compiler hash for triplet x64-windows...
-A suitable version of powershell-core was not found (required v7.2.24).
-Downloading PowerShell-7.2.24-win-x64.zip
-Successfully downloaded PowerShell-7.2.24-win-x64.zip.
-Extracting powershell-core...
-Compiler found: C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.42.34433/bin/Hostx64/x64/cl.exe
-Detecting compiler hash for triplet x64-windows-static...
-Compiler found: C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.42.34433/bin/Hostx64/x64/cl.exe
-Restored 0 package(s) from C:\Users\leet\AppData\Local\vcpkg\archives in 523 us. Use --debug to see more details.
-Installing 1/4 vcpkg-cmake:x64-windows@2024-04-23...
-Building vcpkg-cmake:x64-windows@2024-04-23...
--- Installing: C:/vcpkg/packages/vcpkg-cmake_x64-windows/share/vcpkg-cmake/vcpkg_cmake_configure.cmake
--- Installing: C:/vcpkg/packages/vcpkg-cmake_x64-windows/share/vcpkg-cmake/vcpkg_cmake_build.cmake
--- Installing: C:/vcpkg/packages/vcpkg-cmake_x64-windows/share/vcpkg-cmake/vcpkg_cmake_install.cmake
--- Installing: C:/vcpkg/packages/vcpkg-cmake_x64-windows/share/vcpkg-cmake/vcpkg-port-config.cmake
--- Installing: C:/vcpkg/packages/vcpkg-cmake_x64-windows/share/vcpkg-cmake/copyright
--- Performing post-build validation
-Stored binaries in 1 destinations in 123 ms.
-Elapsed time to handle vcpkg-cmake:x64-windows: 428 ms
-vcpkg-cmake:x64-windows package ABI: 1c9cd6d15b6bd6353941d2a7172da60b44407b254c8a998e11ac63a691d88c8c
-Installing 2/4 vcpkg-cmake-config:x64-windows@2024-05-23...
-Building vcpkg-cmake-config:x64-windows@2024-05-23...
--- Installing: C:/vcpkg/packages/vcpkg-cmake-config_x64-windows/share/vcpkg-cmake-config/vcpkg_cmake_config_fixup.cmake
--- Installing: C:/vcpkg/packages/vcpkg-cmake-config_x64-windows/share/vcpkg-cmake-config/vcpkg-port-config.cmake
--- Installing: C:/vcpkg/packages/vcpkg-cmake-config_x64-windows/share/vcpkg-cmake-config/copyright
--- Skipping post-build validation due to VCPKG_POLICY_EMPTY_PACKAGE
-Stored binaries in 1 destinations in 139 ms.
-Elapsed time to handle vcpkg-cmake-config:x64-windows: 371 ms
-vcpkg-cmake-config:x64-windows package ABI: 3d79309c04958a43ccac3d839dceb8b3bf77fe6483ba5d7139e011f522841777
-Installing 3/4 vcpkg-cmake-get-vars:x64-windows@2024-09-22...
-Building vcpkg-cmake-get-vars:x64-windows@2024-09-22...
--- Installing: C:/vcpkg/packages/vcpkg-cmake-get-vars_x64-windows/share/vcpkg-cmake-get-vars/vcpkg_cmake_get_vars.cmake
--- Installing: C:/vcpkg/packages/vcpkg-cmake-get-vars_x64-windows/share/vcpkg-cmake-get-vars/cmake_get_vars
--- Installing: C:/vcpkg/packages/vcpkg-cmake-get-vars_x64-windows/share/vcpkg-cmake-get-vars/cmake_get_vars/CMakeLists.txt
--- Installing: C:/vcpkg/packages/vcpkg-cmake-get-vars_x64-windows/share/vcpkg-cmake-get-vars/vcpkg-port-config.cmake
--- Installing: C:/vcpkg/packages/vcpkg-cmake-get-vars_x64-windows/share/vcpkg-cmake-get-vars/copyright
--- Performing post-build validation
-Stored binaries in 1 destinations in 144 ms.
-Elapsed time to handle vcpkg-cmake-get-vars:x64-windows: 375 ms
-vcpkg-cmake-get-vars:x64-windows package ABI: 06e4bf7043f81750b3aaa7aa31a68dec84d1b064d55b6130ffea76f8ce300ffe
-Installing 4/4 openssl:x64-windows-static@3.4.0...
-Building openssl:x64-windows-static@3.4.0...
-Downloading openssl-openssl-openssl-3.4.0.tar.gz
-Successfully downloaded openssl-openssl-openssl-3.4.0.tar.gz.
--- Extracting source C:/vcpkg/downloads/openssl-openssl-openssl-3.4.0.tar.gz
--- Applying patch cmake-config.patch
--- Applying patch command-line-length.patch
--- Applying patch script-prefix.patch
--- Applying patch asm-armcap.patch
--- Applying patch windows/install-layout.patch
--- Applying patch windows/install-pdbs.patch
--- Applying patch unix/android-cc.patch
--- Applying patch unix/move-openssldir.patch
--- Applying patch unix/no-empty-dirs.patch
--- Applying patch unix/no-static-libs-for-shared.patch
--- Using source at C:/vcpkg/buildtrees/openssl/src/nssl-3.4.0-821e8e5bdc.clean
-Downloading strawberry-perl-5.40.0.1-64bit-portable.zip
-Successfully downloaded strawberry-perl-5.40.0.1-64bit-portable.zip.
--- Found external ninja('1.12.1').
--- Getting CMake variables for x64-windows-static
-Downloading nasm-2.16.01-win64.zip
-Successfully downloaded nasm-2.16.01-win64.zip.
--- Getting CMake variables for x64-windows-static
-Downloading jom_1_1_4.zip
-Successfully downloaded jom_1_1_4.zip.
--- Prerunning x64-windows-static-dbg
--- Building x64-windows-static-dbg
--- Prerunning x64-windows-static-rel
--- Building x64-windows-static-rel
--- Fixing pkgconfig file: C:/vcpkg/packages/openssl_x64-windows-static/lib/pkgconfig/libcrypto.pc
--- Fixing pkgconfig file: C:/vcpkg/packages/openssl_x64-windows-static/lib/pkgconfig/libssl.pc
--- Fixing pkgconfig file: C:/vcpkg/packages/openssl_x64-windows-static/lib/pkgconfig/openssl.pc
-Downloading msys2-mingw-w64-x86_64-pkgconf-1~2.3.0-1-any.pkg.tar.zst
-Successfully downloaded msys2-mingw-w64-x86_64-pkgconf-1~2.3.0-1-any.pkg.tar.zst.
-Downloading msys2-msys2-runtime-3.5.4-2-x86_64.pkg.tar.zst
+
+[...]
+
 Successfully downloaded msys2-msys2-runtime-3.5.4-2-x86_64.pkg.tar.zst.
 -- Using msys root at C:/vcpkg/downloads/tools/msys2/21caed2f81ec917b
 -- Fixing pkgconfig file: C:/vcpkg/packages/openssl_x64-windows-static/debug/lib/pkgconfig/libcrypto.pc
@@ -324,7 +244,10 @@ openssl is compatible with built-in CMake targets:
   target_link_libraries(main PRIVATE OpenSSL::Crypto)
 ```
 
-# Install rust
+## Install Rust
+
+Next, we need to install support for the Rust language 
+
 ```PowerShell
 winget install --id Rustlang.Rustup
 ```
@@ -342,6 +265,8 @@ Successfully installed
 ```
 
 # Get the Tari code base
+Finally, we can pull down the Tari code base and build Tari. First, clone the repo from the [official project](https://github.com/tari-project/tari/)
+
 ```PowerShell
 cd src
 git clone https://github.com/tari-project/tari.git
