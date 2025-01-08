@@ -4,6 +4,20 @@ This basic guide uses much information sourced from https://github.com/KhronosGr
 
 > This guide assumes that you are installing most of these components for the first time (excluding ```App Installer```, which is normally packaged with Windows.).
 
+This guide utilises the PowerShell command line to install the dependencies 
+
+You will require the following package managers to set up the development environment:
+* winget
+* choclately
+* vcpkg
+
+The following dependencies are required, and will be installed as you proceed through this guide:
+* OpenSSL
+* Visual Studio BuildTools 2022
+* CMake
+* Protocol buffers (otherwise known as protobuf)
+* (Optional) Tor. While not required to build the project, Tari does leverage Tor for various functions.
+
 ## Setting up ```winget``` and ```App Installer```
 
 Users will require ```winget```, a Windows package manager bundled with ```App Installer```. This guide will require ```App Installer``` to be at the latest version.
