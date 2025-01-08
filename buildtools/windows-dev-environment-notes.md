@@ -6,9 +6,9 @@ This basic guide uses much information sourced from https://github.com/KhronosGr
 
 ## Setting up ```winget``` and ```App Installer```
 
-Users will require ```winget```, which is a Windows package manager bundled with ```App Installer```. This guide will require ```App Installer``` to be at the latest version.
+Users will require ```winget```, a Windows package manager bundled with ```App Installer```. This guide will require ```App Installer``` to be at the latest version.
 
-You might already have them installed. Run the following command in Powershell with Administrator privileges to confirm (to run PowerShell as Administrator, open the Start Menu, search for PowerShell, then right-click on the result and select the "Run as Administrator"):
+You likely already have them installed. Run the following command in Powershell with Administrator privileges to confirm if they have been installed (to run PowerShell as Administrator, open the Start Menu, search for PowerShell, then right-click on the result and select the "Run as Administrator"):
 
 ```powershell
 winget list
@@ -61,15 +61,12 @@ This will save a ```setup.exe``` file to ```C:\Program Files (x86)\Microsoft Vis
 ## Install Visual Studio components for Windows 11
 
 In this step, we will be installing several components required by Visual Studio for the build
+
 To install, run the following command: 
 
 ```powershell
 & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\setup.exe" install --passive --norestart --productId Microsoft.VisualStudio.Product.BuildTools --channelId VisualStudio.17.Release --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.Component.Windows11SDK.26100 --add Microsoft.VisualStudio.Component.VC.CMake.Project --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --add Microsoft.VisualStudio.Component.VC.CoreIde --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.ComponentGroup.NativeDesktop.Core
 ```
-
-
-
-
 A sample of the beginning of the expected output:
 ```powershell
 PS C:\Users\leet> & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\setup.exe" install --passive --norestart --productId Microsoft.VisualStudio.Product.BuildTools --channelId VisualStudio.17.Release --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.Component.Windows11SDK.22000
@@ -106,7 +103,6 @@ Successfully installed
 ```
 
 ## Install ```chocolatey``` package manager 
-
 ```chocolatey``` is a Window's package manager that draws from a different set of repos than ```winget```, but will make the process of installing further required dependencies and packages such as ```protobuf``` easier.
 
 To install, , run the following command:
@@ -128,8 +124,7 @@ Starting package install...
 Successfully installed
 Notes: The Chocolatey CLI MSI is intended for installation only! If upgrading from 5.x of Licensed Extension, or 1.x of other Chocolatey products, see the upgrade guide at https://ch0.co/upv2v6 before continuing. Otherwise, run `choco upgrade chocolatey`.
 ```
-
-> It is required to close all PowerShell terminals once this is complete. Failure to do so will result in any ```choco``` commands not being interpreted correctly until PowerShell has been restarted.
+> Note: It is required to close all PowerShell terminals once this is complete. Failure to do so will result in any ```choco``` commands not being interpreted correctly until PowerShell has been restarted.
 
 ## Install Protobuf with chocolatey
 
@@ -244,6 +239,12 @@ openssl is compatible with built-in CMake targets:
   target_link_libraries(main PRIVATE OpenSSL::Crypto)
 ```
 
+Once installed, you'll need to also set the OpenSSL environmental path. Use the following command to set an system-wide environmental path for OpenSSL:
+
+```powershell
+setx /m PATH "$Env:Path;C:\vcpkg\installed\x64-windows-static\bin"
+```
+
 ## Install Rust
 
 Next, we need to install support for the Rust language 
@@ -265,54 +266,23 @@ Successfully installed
 ```
 
 # Get the Tari code base
-Finally, we can pull down the Tari code base and build Tari. First, clone the repo from the [official project](https://github.com/tari-project/tari/)
+Finally, we can pull down the Tari code base and build Tari. First, clone the repo from the [official project](https://github.com/tari-project/tari/) in your folder of choice. In the example below, we're using a ```src``` folder as the location to store our repos:
 
 ```PowerShell
 cd src
 git clone https://github.com/tari-project/tari.git
 cd tari
 ```
-sample output:
-```
-PS C:\Users\leet\src> git clone https://github.com/tari-project/tari.git
->>
-Cloning into 'tari'...
-remote: Enumerating objects: 133401, done.
-remote: Counting objects: 100% (7577/7577), done.
-remote: Compressing objects: 100% (3635/3635), done.
-remote: Total 133401 (delta 4830), reused 6216 (delta 3900), pack-reused 125824 (from 1)
-Receiving objects: 100% (133401/133401), 144.04 MiB | 5.98 MiB/s, done.
-Resolving deltas: 100% (99974/99974), done.
-Updating files: 100% (1786/1786), done.
-```
 
-# Build Tari Tools
+## Build Tari Tools
+Finally, you should be able to build the Tari tools. In previous steps, we've set the environmental variables for vcpkg and OpenSSL so while the below steps aren't necessary, setting them locally prior to the run will ensure you are pointing to the correct paths.
+
+Again, either via the IDE terminal or Powershell, run the following commands (making sure you are currently in the ```tari``` repo folder created in the previous step):
+
 ```PowerShell
 $Env:VCPKG_ROOT = 'C:\vcpkg'
 $Env:OPENSSL_DIR = 'C:\vcpkg\packages\openssl_x64-windows-static'
 cargo build --release --bin minotari_miner
 ```
-sample output:
-```
-PS C:\Users\leet> cd src\tari
-PS C:\Users\leet\src\tari> cargo build --release --bin minotari_miner
-info: syncing channel updates for 'nightly-2024-07-07-x86_64-pc-windows-msvc'
-info: latest update on 2024-07-07, rust version 1.81.0-nightly (ed7e35f34 2024-07-06)
-info: downloading component 'cargo'
-info: downloading component 'clippy'
-info: downloading component 'rust-docs'
-info: downloading component 'rust-std'
-info: downloading component 'rustc'
-info: downloading component 'rustfmt'
-info: installing component 'cargo'
-info: installing component 'clippy'
-info: installing component 'rust-docs'
-info: installing component 'rust-std'
-info: installing component 'rustc'
-info: installing component 'rustfmt'
-    Updating git repository `https://github.com/tari-project/lmdb-rs`
-    Updating git submodule `https://github.com/LMDB/lmdb.git`
-    Updating crates.io index
-    Updating git repository `https://github.com/Zondax/ledger-rs`
- Downloading 516 crates
-```
+
+This will build the Minotari miner executable in your ```releases``` folder for the repo. Note that the ```minotari_miner``` is just one of several tools that are available. Others include the ```minotari_node``` and ```minotari_console_wallet```. You can review the project for more details on each of these.
