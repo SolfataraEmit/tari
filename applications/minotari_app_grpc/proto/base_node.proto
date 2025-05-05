@@ -31,11 +31,180 @@ package tari.rpc;
 
 // The gRPC interface for interacting with the base node.
 service BaseNode {
-    // Lists headers in the current best chain
+    // The ListHeaders RPC call retrieves a stream of block headers from the blockchain in the requested order,
+    // beginning at a specified height. This endpoint supports pagination, sorting, and validation to ensure
+    // safe access to historical chain data.
+    //
+    // ### Inputs:
+    // - `from_height` (uint64): The height to start listing headers from.
+    //     - If set to `0`, it defaults to:
+    //         - The **tip** if `sorting` is `SORTING_DESC`
+    //         - The **genesis block** if `sorting` is `SORTING_ASC`
+    //     - If greater than the current tip, it will be clamped to the tip.
+    //
+    // - `num_headers` (uint64): The number of headers to return.
+    //     - If set to `0`, it defaults to `10`.
+    //     - Must not exceed `10,000` (requests above this limit will be rejected).
+    //
+    // - `sorting` (enum Sorting): Determines the order of returned headers.
+    //     - `SORTING_ASC` (0): Returns headers from lower to higher heights.
+    //     - `SORTING_DESC` (1): Returns headers from higher to lower heights.
+    //     - Defaults to `SORTING_DESC` if not specified.
+    //
+    // ### Response:
+    // For each block header streamed back to the client, the response includes:
+    // - The full block header (`header`)
+    // - The number of confirmations (`confirmations`)
+    // - The total block reward (coinbase + fees) in microMinotari (`reward`)
+    // - The total accumulated difficulty (`difficulty`)
+    // - The number of transactions in the block (`num_transactions`)
+    //
+    // Example usage (JavaScript with gRPC):
+    //
+    // ```js
+    // const client = new BaseNodeClient('localhost:50051', grpc.credentials.createInsecure());
+    // const request = {
+    //   from_height: 1000,
+    //   num_headers: 5,
+    //   sorting: 1 // 0 = SORTING_ASC, 1 = SORTING_DESC
+    // };
+    // const call = client.listHeaders(request);
+    // call.on('data', (response) => {
+    //   console.log('Block header:', response);
+    // });
+    // call.on('end', () => {
+    //   console.log('Stream ended');
+    // });
+    // call.on('error', (err) => {
+    //   console.error('gRPC error:', err);
+    // });
+    // ```
+    //
+    // Sample response:
+    // ```json
+    // {
+    //   "header": {
+    //     "hash": "1f2d3c4b...",
+    //     "height": 1000,
+    //     "prev_hash": "abc123...",
+    //     "timestamp": 1714920000,
+    //     ...
+    //   },
+    //   "confirmations": 500,
+    //   "reward": 220000000,
+    //   "difficulty": 58739298,
+    //   "num_transactions": 12
+    // }
+    // ```
+
     rpc ListHeaders(ListHeadersRequest) returns (stream BlockHeaderResponse);
-    // Get header by hash
+    // The GetHeaderByHash RPC call retrieves the block header and associated metadata for a specific block,
+    // identified by its hash.
+    //
+    // ### Inputs:
+    // - `hash` (bytes): A 32-byte block hash used to look up the block.
+    //     - Must be exactly 32 bytes. If the format or size is incorrect, an `INVALID_ARGUMENT` error is returned.
+    //     - If no block exists with the given hash, a `NOT_FOUND` error is returned.
+    //
+    // ### Response:
+    // Returns a `BlockHeaderResponse` that includes:
+    // - `header`: The full block header
+    // - `confirmations`: The number of blocks since this one (based on current chain tip)
+    // - `reward`: The total reward for the block, including fees (in microMinotari)
+    // - `difficulty`: The total accumulated difficulty at this block height
+    // - `num_transactions`: The number of transactions included in the block
+    //
+    // ### Notes:
+    // - The number of transactions is safely cast to `uint32` due to protocol-level transaction limits.
+    // - Depending on server configuration, internal error details may be obscured for security.
+    //
+    // ### Example usage:
+    //
+    // ```js
+    // const request = {
+    //   hash: Buffer.from('8a3f2be4f2b5e1239f0a...8e9c', 'hex')
+    // };
+    // client.getHeaderByHash(request, (err, response) => {
+    //   if (err) console.error('gRPC error:', err);
+    //   else console.log('Block header:', response);
+    // });
+    // ```
+    //
+    // ### Sample response:
+    // ```json
+    // {
+    //   "header": {
+    //     "hash": "8a3f2be4...",
+    //     "height": 1050,
+    //     "prev_hash": "7c2d1af0...",
+    //     "timestamp": 1714920000,
+    //     ...
+    //   },
+    //   "confirmations": 497,
+    //   "reward": 220000000,
+    //   "difficulty": 58420391,
+    //   "num_transactions": 15
+    // }
+    // ```
+
     rpc GetHeaderByHash(GetHeaderByHashRequest) returns (BlockHeaderResponse);
-    // Returns blocks in the current best chain. Currently only supports querying by height
+    // The GetBlocks RPC call retrieves full blocks from the blockchain by a list of specified heights.
+    // This includes all block contents (headers, transactions, inputs, outputs, kernels) along with
+    // the number of confirmations.
+    //
+    // ### Inputs:
+    // - `heights` (repeated uint64):
+    //     - A list of block heights to retrieve.
+    //     - Must contain at least one height. If the list is empty, an `INVALID_ARGUMENT` error is returned.
+    //     - The maximum number of heights is 1,000. Any values beyond this limit will be ignored.
+    //
+    // ### Response:
+    // Returns a stream of `HistoricalBlock` messages, each containing:
+    // - `block`: The full block at the specified height (including all transactions).
+    // - `confirmations`: The number of confirmations, where `1` means the current tip.
+    //
+    // The blocks are streamed in ascending height order. Internally, blocks are fetched in pages of 10,
+    // but this is transparent to the client.
+    //
+    // ### Notes:
+    // - Duplicate heights in the request are ignored during processing.
+    // - If a height does not correspond to a block in the current chain, it is silently skipped.
+    // - If an internal error occurs while retrieving a block, streaming stops, and an `INTERNAL` gRPC status may be returned.
+    // - Errors may be obscured depending on server configuration.
+    //
+    // ### Example usage:
+    //
+    // ```js
+    // const request = {
+    //   heights: [100, 101, 102]
+    // };
+    // client.getBlocks(request).on('data', (block) => {
+    //   console.log('Received block:', block);
+    // }).on('error', (err) => {
+    //   console.error('gRPC error:', err);
+    // });
+    // ```
+    //
+    // ### Sample streamed response:
+    // ```json
+    // {
+    //   "confirmations": 567,
+    //   "block": {
+    //     "header": {
+    //       "height": 100,
+    //       "hash": "abcd1234...",
+    //       "timestamp": 1714920000,
+    //       ...
+    //     },
+    //     "body": {
+    //       "inputs": [...],
+    //       "outputs": [...],
+    //       "kernels": [...]
+    //     }
+    //   }
+    // }
+    // ```
+
     rpc GetBlocks(GetBlocksRequest) returns (stream HistoricalBlock);
     // Returns the block timing for the chain heights
     rpc GetBlockTiming(HeightRequest) returns (BlockTimingResponse);
