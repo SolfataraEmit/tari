@@ -206,7 +206,10 @@ service BaseNode {
     // ```
 
     rpc GetBlocks(GetBlocksRequest) returns (stream HistoricalBlock);
-    // Returns the block timing for the chain heights
+    
+    // The GetBlockTiming RPC call
+
+    
     rpc GetBlockTiming(HeightRequest) returns (BlockTimingResponse);
     // Returns the network Constants
     rpc GetConstants(BlockHeight) returns (ConsensusConstants);
